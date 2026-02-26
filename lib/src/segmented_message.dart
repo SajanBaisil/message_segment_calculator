@@ -88,26 +88,36 @@ class SegmentedMessage {
   /// [message] : The message content to be segmented and encoded.
   /// [encodingMode] : The desired encoding format (defaults to auto-detection).
   /// [smartEncoding] : Whether to use smart encoding for character replacement.
-  SegmentedMessage(String message, [this.encodingMode = SmsEncodingMode.auto, bool smartEncoding = false]) {
+  SegmentedMessage(String message,
+      [this.encodingMode = SmsEncodingMode.auto, bool smartEncoding = false]) {
     // Apply smart encoding if enabled
     if (smartEncoding) {
-      message = message.split('').map((char) => smartEncodingMap[char] ?? char).join('');
+      message = message
+          .split('')
+          .map((char) => smartEncodingMap[char] ?? char)
+          .join('');
     }
 
     // Split message into graphemes and process line breaks
-    graphemes = message.characters.expand((grapheme) => grapheme == '\r\n' ? grapheme.split('') : [grapheme]).toList(growable: false);
+    graphemes = message.characters
+        .expand(
+            (grapheme) => grapheme == '\r\n' ? grapheme.split('') : [grapheme])
+        .toList(growable: false);
 
     // Count the number of Unicode scalars in the message
     numberOfUnicodeScalars = message.runes.length;
 
     // Determine the encoding type for the message
     if (encodingMode == SmsEncodingMode.auto) {
-      encoding = _hasAnyUCSCharacters(graphemes) ? SmsEncoding.ucs2 : SmsEncoding.gsm7;
+      encoding =
+          _hasAnyUCSCharacters(graphemes) ? SmsEncoding.ucs2 : SmsEncoding.gsm7;
     } else {
-      if (encodingMode == SmsEncodingMode.gsm7 && _hasAnyUCSCharacters(graphemes)) {
-        throw Exception('The string provided is incompatible with GSM-7 encoding');
+      if (encodingMode == SmsEncodingMode.gsm7 &&
+          _hasAnyUCSCharacters(graphemes)) {
+        throw Exception(
+            'The string provided is incompatible with GSM-7 encoding');
       }
-      encoding = switch(encodingMode) {
+      encoding = switch (encodingMode) {
         SmsEncodingMode.gsm7 => SmsEncoding.gsm7,
         SmsEncodingMode.ucs2 => SmsEncoding.ucs2,
         _ => throw ('Unsupported encoding mode: $encodingMode'),
@@ -271,5 +281,8 @@ class SegmentedMessage {
   ///
   /// Returns true if any character requires UCS-2 encoding, otherwise false.
   bool _hasAnyUCSCharacters(List<String> graphemes) =>
-      graphemes.any((grapheme) => grapheme.length >= 2 || (grapheme.length == 1 && !unicodeToGsm.containsKey(grapheme.codeUnitAt(0))));
+      graphemes.any((grapheme) =>
+          grapheme.length >= 2 ||
+          (grapheme.length == 1 &&
+              !unicodeToGsm.containsKey(grapheme.codeUnitAt(0))));
 }

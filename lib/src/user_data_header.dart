@@ -14,8 +14,10 @@ class UserDataHeader extends SegmentElement {
   /// Creates a new instance of [UserDataHeader].
   /// Initializes the object properties to indicate it is a reserved character and a user data header.
   UserDataHeader() {
-    isReservedChar = true; // Set to true because user data headers are reserved characters.
-    isUserDataHeader = true; // Explicitly marks this object as a user data header.
+    isReservedChar =
+        true; // Set to true because user data headers are reserved characters.
+    isUserDataHeader =
+        true; // Explicitly marks this object as a user data header.
   }
 
   /// Returns the size of a code unit in bits for user data headers.

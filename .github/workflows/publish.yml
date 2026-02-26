@@ -10,25 +10,25 @@ jobs:
   publish:
     permissions:
       id-token: write # Required for authentication using OIDC
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Read a variable
-        run: echo "My app id value is ${{ vars.PUB_API_TOKEN}}"
-      - name: Tell me a secret 
-        run: echo "My existing secret is ${{ secrets.PUB_API_TOKEN}}"
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dart-lang/setup-dart@v1
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.3'  # You can specify a version like '3.0.0' if needed
-          
-      - name: Restore pub credentials
-        run: echo "${{ secrets.PUB_API_TOKEN }}"
-       
-           
-      # Here you can insert custom steps you need
-      # - run: dart tool/generate-code.dart
+          sdk: stable
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze project source
+        run: dart analyze --fatal-infos
+
+      - name: Run tests
+        run: dart test
+
       - name: Publish
-        run: flutter pub publish --force
+        run: dart pub publish --force

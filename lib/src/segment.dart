@@ -36,23 +36,24 @@ class Segment {
   ///
   /// Returns the total size in bits of all the elements in the segment.
   int sizeInBits() => _elements.fold(
-    0,
-    (total, e) => total + e.sizeInBits(),
-  );
+        0,
+        (total, e) => total + e.sizeInBits(),
+      );
 
   /// Computes the size of the message content in bits, excluding user data headers.
   ///
   /// Returns the size in bits of the message content only.
   int messageSizeInBits() => _elements.whereType<EncodedChar>().fold(
-    0,
-    (total, e) => total + e.sizeInBits(),
-  );
+        0,
+        (total, e) => total + e.sizeInBits(),
+      );
 
   /// Calculates the remaining free space in bits within this segment.
   ///
   /// Returns the number of free bits available in this segment.
   int freeSizeInBits() {
-    const int maxBitsInSegment = 1120; // Maximum size of an SMS is 140 octets -> 140 * 8 bits = 1120 bits
+    const int maxBitsInSegment =
+        1120; // Maximum size of an SMS is 140 octets -> 140 * 8 bits = 1120 bits
     return maxBitsInSegment - sizeInBits();
   }
 
@@ -65,7 +66,8 @@ class Segment {
       return []; // Return an empty list if headers are already present.
     }
     final leftOverChar = <EncodedChar>[];
-    hasTwilioReservedBits = true; // Indicate that Twilio reserved bits are used.
+    hasTwilioReservedBits =
+        true; // Indicate that Twilio reserved bits are used.
     hasUserDataHeader = true; // Indicate that a user data header is now added.
 
     // Add 6 user data headers at the start of the segment.
@@ -91,5 +93,6 @@ class Segment {
   SegmentElement removeLast() => _elements.removeLast();
 
   @override
-  String toString() => 'Segment{hasTwilioReservedBits: $hasTwilioReservedBits, hasUserDataHeader: $hasUserDataHeader, sizeInBits: ${sizeInBits()}, messageSizeInBits: ${messageSizeInBits()}, freeSizeInBits: ${freeSizeInBits()}}';
+  String toString() =>
+      'Segment{hasTwilioReservedBits: $hasTwilioReservedBits, hasUserDataHeader: $hasUserDataHeader, sizeInBits: ${sizeInBits()}, messageSizeInBits: ${messageSizeInBits()}, freeSizeInBits: ${freeSizeInBits()}}';
 }

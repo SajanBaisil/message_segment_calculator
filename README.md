@@ -29,7 +29,7 @@ To integrate the SMS Segment Calculator into your Dart or Flutter project, add t
 
 ```yaml
 dependencies:
-  sms_segment_calculator: ^0.1.0
+  message_segment_calculator: ^1.1.0
 
 
 

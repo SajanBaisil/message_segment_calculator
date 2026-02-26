@@ -3,6 +3,11 @@
 /// providing an optimized representation based on the GSM-7 or UCS-2 encoding standards.
 library;
 
+/// A map that replaces common Unicode characters with their GSM-7 compatible equivalents.
+///
+/// This enables "smart encoding" by substituting visually similar characters
+/// (e.g., curly quotes → straight quotes) so that messages can be sent using
+/// the more space-efficient GSM-7 encoding instead of falling back to UCS-2.
 const Map<String, String> smartEncodingMap = {
   '\u00ab': '"', // LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
   '\u00bb': '"', // RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK

@@ -29,7 +29,8 @@ class EncodedChar extends SegmentElement {
 
     // Assign code units based on whether the character is GSM7 or not
     if (isGSM7 ?? false) {
-      codeUnits = unicodeToGsm[char?.codeUnitAt(0)]; // Use mapped code units for GSM7
+      codeUnits =
+          unicodeToGsm[char?.codeUnitAt(0)]; // Use mapped code units for GSM7
     } else {
       codeUnits = []; // For non-GSM7 characters, initialize an empty list
       for (var i = 0; i < char!.length; i++) {
@@ -56,7 +57,9 @@ class EncodedChar extends SegmentElement {
     if (encoding == SmsEncoding.ucs2 && (isGSM7 ?? false)) {
       return 16; // UCS-2 encoding, size is 16 bits
     }
-    final bitsPerUnits = encoding == SmsEncoding.gsm7 ? 7 : 16; // Bits per unit depending on encoding
+    final bitsPerUnits = encoding == SmsEncoding.gsm7
+        ? 7
+        : 16; // Bits per unit depending on encoding
     return bitsPerUnits * codeUnits!.length; // Total size in bits
   }
 }
