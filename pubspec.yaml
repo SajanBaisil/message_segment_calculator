@@ -1,6 +1,6 @@
 name: message_segment_calculator
 description: "Efficiently calculate SMS segments for messages with support for GSM and UCS-2 encoding. Ideal for apps that require precise SMS length and cost management."
-version: 1.1.1
+version: 1.1.2
 homepage: https://github.com/SajanBaisil/message_segment_calculator
 repository: https://github.com/SajanBaisil/message_segment_calculator
 issue_tracker: https://github.com/SajanBaisil/message_segment_calculator/issues

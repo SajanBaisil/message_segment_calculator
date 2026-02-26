@@ -19,13 +19,13 @@ jobs:
           sdk: stable
 
       - name: Install dependencies
-        run: dart pub get
+        run: dart pub get --no-example
 
       - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed .
+        run: dart format --output=none --set-exit-if-changed lib/ test/
 
       - name: Analyze project source
-        run: dart analyze --fatal-infos
+        run: dart analyze --fatal-infos lib/ test/
 
       - name: Run tests
         run: dart test

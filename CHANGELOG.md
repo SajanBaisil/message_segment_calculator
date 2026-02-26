@@ -1,3 +1,8 @@
+## 1.1.2
+
+### Fixed
+- **CI/CD: skip example directory during publish** — The `example/` folder is a Flutter project which caused `dart pub get` to fail with exit code 69. CI now uses `--no-example` for dependency resolution and scopes format/analyze to `lib/` and `test/` only.
+
 ## 1.1.1
 
 ### Fixed
