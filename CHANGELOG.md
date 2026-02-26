@@ -1,3 +1,8 @@
+## 1.1.1
+
+### Fixed
+- **Replaced `flutter_lints` with `lints`** — The `flutter_lints` dev dependency pulled in the Flutter SDK, causing `dart pub publish` to fail on CI with exit code 69. Replaced with the pure Dart `lints` package.
+
 ## 1.1.0
 
 ### Breaking Changes
