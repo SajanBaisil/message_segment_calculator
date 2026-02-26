@@ -57,37 +57,36 @@ class _MessageSegmentCalculatorWidgetState
       appBar: AppBar(
         title: const Text('Message Segment Calculator'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          children: [
-            const Text('Enter text'),
-            const SizedBox(
-              height: 10,
-            ),
-            TextFormField(
-              decoration: const InputDecoration(),
-              controller: textEditingController,
-              onChanged: (value) {
-                setState(() {
-                  /// Updates the [segmentedMessage] whenever the text input changes.
-                  segmentedMessage = SegmentedMessage(value);
-                });
-              },
-            ),
-            const SizedBox(
-              height: 10,
-            ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            children: [
+              const Text('Enter text'),
+              const SizedBox(height: 10),
+              TextFormField(
+                decoration: const InputDecoration(),
+                maxLines: 15,
+                controller: textEditingController,
+                onChanged: (value) {
+                  setState(() {
+                    /// Updates the [segmentedMessage] whenever the text input changes.
+                    segmentedMessage = SegmentedMessage(value);
+                  });
+                },
+              ),
+              const SizedBox(height: 10),
 
-            /// Displays the results of the message segmentation calculations.
-            Text(
-                'number of characters : ${segmentedMessage?.numberOfCharacters}'),
-            Text('number of segments : ${segmentedMessage?.segmentsCount}'),
-            Text(
-                'number of unicode scalars : ${segmentedMessage?.numberOfUnicodeScalars}'),
-            Text('message size in bits : ${segmentedMessage?.messageSize}'),
-            Text('total size in bits : ${segmentedMessage?.totalSize}'),
-          ],
+              /// Displays the results of the message segmentation calculations.
+              Text('number of characters : ${segmentedMessage?.numberOfCharacters}'),
+              Text('number of segments : ${segmentedMessage?.segmentsCount}'),
+              Text('number of unicode scalars : ${segmentedMessage?.numberOfUnicodeScalars}'),
+              Text('message size in bits : ${segmentedMessage?.messageSize}'),
+              Text('total size in bits : ${segmentedMessage?.totalSize}'),
+              const SizedBox(height: 10),
+              Text('segments:\n${segmentedMessage?.segments.map((segment) => '- $segment').join('\n')}', style: const TextStyle(fontSize: 10)),
+            ],
+          ),
         ),
       ),
     );

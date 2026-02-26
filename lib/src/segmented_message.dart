@@ -1,12 +1,27 @@
-import 'package:grapheme_splitter/grapheme_splitter.dart';
+import 'package:characters/characters.dart';
 import 'package:message_segment_calculator/message_segment_calculator.dart';
-import 'package:message_segment_calculator/src/enchoded_char.dart';
 
-import 'segments.dart';
+import 'segment_element.dart';
+import 'segment.dart';
+
+/// =============================================================================
+/// ENUM: SmsEncodingMode
+/// PURPOSE: Specifies the encoding types that can be used for SMS messages.
+/// =============================================================================
+enum SmsEncodingMode {
+  /// Represents the GSM-7 encoding, a 7-bit encoding standard used for SMS messages.
+  gsm7,
+
+  /// Represents the UCS-2 encoding, a 16-bit encoding standard used for SMS messages that include non-GSM-7 characters.
+  ucs2,
+
+  /// Automatically determines the best encoding based on the content of the SMS message.
+  auto,
+}
 
 /// =============================================================================
 /// ENUM: SmsEncoding
-/// PURPOSE: Specifies the encoding types that can be used for SMS messages.
+/// PURPOSE: Specifies the encoding types for a SMS messages.
 /// =============================================================================
 enum SmsEncoding {
   /// Represents the GSM-7 encoding, a 7-bit encoding standard used for SMS messages.
@@ -14,21 +29,6 @@ enum SmsEncoding {
 
   /// Represents the UCS-2 encoding, a 16-bit encoding standard used for SMS messages that include non-GSM-7 characters.
   ucs2,
-
-  /// Automatically determines the best encoding based on the content of the SMS message.
-  auto
-}
-
-/// Valid encoding values for SMS messages.
-enum ValidEncodingValues {
-  /// Represents the GSM-7 encoding, a 7-bit encoding standard used for SMS messages.
-  gsm7,
-
-  /// Represents the UCS-2 encoding, a 16-bit encoding standard used for SMS messages that include non-GSM-7 characters.
-  ucs2,
-
-  /// Automatically determines the best encoding based on the content of the SMS message.
-  auto
 }
 
 /// =============================================================================
@@ -56,8 +56,11 @@ enum LineBreakStyle {
 /// character sets and can handle different line break styles.
 /// =============================================================================
 class SegmentedMessage {
-  /// Encoding format for the SMS message, defaults to auto-detection
-  SmsEncoding encoding = SmsEncoding.auto;
+  /// Encoding mode format for the SMS message, defaults to auto-detection
+  SmsEncodingMode encodingMode = SmsEncodingMode.auto;
+
+  /// Actual encoding used for the SMS message after processing
+  late SmsEncoding encoding;
 
   /// List of segments created for the SMS message
   List<Segment> segments = [];
@@ -83,81 +86,63 @@ class SegmentedMessage {
   /// Constructor for the SegmentedMessage class.
   ///
   /// [message] : The message content to be segmented and encoded.
-  /// [encoding] : The desired encoding format (defaults to auto-detection).
+  /// [encodingMode] : The desired encoding format (defaults to auto-detection).
   /// [smartEncoding] : Whether to use smart encoding for character replacement.
-  SegmentedMessage(String message,
-      [SmsEncoding encoding = SmsEncoding.auto, bool smartEncoding = false])
-      : encoding = encoding {
-    GraphemeSplitter splitter = GraphemeSplitter();
-
-    // Check if the specified encoding is valid
-    if (!ValidEncodingValues.values.any((e) => e.name == encoding.name)) {
-      throw ('Encoding $encoding not supported');
-    }
-
+  SegmentedMessage(String message, [this.encodingMode = SmsEncodingMode.auto, bool smartEncoding = false]) {
     // Apply smart encoding if enabled
     if (smartEncoding) {
-      message = message
-          .split('')
-          .map((char) =>
-              smartEncodingMap[char] ?? char) // Fallback to original character
-          .join('');
+      message = message.split('').map((char) => smartEncodingMap[char] ?? char).join('');
     }
 
-    /// Split message into graphemes and process line breaks
-    graphemes = splitter.splitGraphemes(message).fold<List<String>>([],
-        (List<String> accumulator, String grapheme) {
-      if (grapheme == '\r\n') {
-        accumulator.addAll(grapheme.split('')); // Separate '\r\n' characters
-      } else {
-        accumulator.add(grapheme); // Add the grapheme as is
-      }
-      return accumulator;
-    });
+    // Split message into graphemes and process line breaks
+    graphemes = message.characters.expand((grapheme) => grapheme == '\r\n' ? grapheme.split('') : [grapheme]).toList(growable: false);
 
-    /// Count the number of Unicode scalars in the message
+    // Count the number of Unicode scalars in the message
     numberOfUnicodeScalars = message.runes.length;
 
-    /// Determine the encoding type for the message
-    String? encodingName;
-    if (encoding == SmsEncoding.auto) {
-      encodingName = _hasAnyUCSCharacters(graphemes) ? 'ucs2' : 'gsm7';
+    // Determine the encoding type for the message
+    if (encodingMode == SmsEncodingMode.auto) {
+      encoding = _hasAnyUCSCharacters(graphemes) ? SmsEncoding.ucs2 : SmsEncoding.gsm7;
     } else {
-      if (encoding == SmsEncoding.gsm7 && _hasAnyUCSCharacters(graphemes)) {
-        throw ('The string provided is incompatible with GSM-7 encoding');
+      if (encodingMode == SmsEncodingMode.gsm7 && _hasAnyUCSCharacters(graphemes)) {
+        throw Exception('The string provided is incompatible with GSM-7 encoding');
       }
-      encodingName = encoding.name;
+      encoding = switch(encodingMode) {
+        SmsEncodingMode.gsm7 => SmsEncoding.gsm7,
+        SmsEncodingMode.ucs2 => SmsEncoding.ucs2,
+        _ => throw ('Unsupported encoding mode: $encodingMode'),
+      };
     }
 
-    /// Encode the characters based on the determined encoding
-    encodedChars = _encodeChars(graphemes, encodingName);
+    // Encode the characters based on the determined encoding
+    encodedChars = _encodeChars(graphemes, encoding);
 
-    /// Count the number of characters based on encoding
-    numberOfCharacters = encodingName == SmsEncoding.ucs2.name
+    // Count the number of characters based on encoding
+    numberOfCharacters = encoding == SmsEncoding.ucs2
         ? graphemes.length
         : _countCodeUnits(encodedChars);
 
-    /// Build segments from encoded characters
+    // Build segments from encoded characters
     segments = _buildSegments(encodedChars);
 
-    /// Detect the line break style in the message
+    // Detect the line break style in the message
     lineBreakStyle = _detectLineBreakStyle(message);
 
-    /// Check for any warnings in the message content
+    // Check for any warnings in the message content
     warnings = _checkForWarnings(lineBreakStyle);
   }
 
   /// Method to encode each character in the message to its encoded representation.
   ///
   /// [graphemes] : List of graphemes in the message.
-  /// [encodingName] : The encoding name ('gsm7' or 'ucs2').
+  /// [encoding] : The encoding name ('gsm7' or 'ucs2').
   ///
   /// Returns a list of encoded characters.
-  List<EncodedChar> _encodeChars(List<String> graphemes, String encodingName) {
+  List<EncodedChar> _encodeChars(List<String> graphemes, SmsEncoding encoding) {
     List<EncodedChar> encodedChars = [];
 
     for (String grapheme in graphemes) {
-      encodedChars.add(EncodedChar(grapheme, encodingName));
+      encodedChars.add(EncodedChar(grapheme, encoding));
     }
 
     return encodedChars;
@@ -174,16 +159,15 @@ class SegmentedMessage {
     Segment currentSegment = segments[0];
 
     /// Iterate over each encoded character and add it to the appropriate segment
-    for (EncodedChar encodedChar in encodedChars) {
+    for (final encodedChar in encodedChars) {
       if (currentSegment.freeSizeInBits() < encodedChar.sizeInBits()) {
         segments.add(Segment(withUserDataHeader: true));
         currentSegment = segments[segments.length - 1];
         Segment previousSegment = segments[segments.length - 2];
 
         if (!previousSegment.hasUserDataHeader) {
-          List<EncodedChar> removedChars = previousSegment.addHeader();
-
-          for (EncodedChar char in removedChars) {
+          final removedChars = previousSegment.addHeader();
+          for (final char in removedChars) {
             currentSegment.add(char);
           }
         }
@@ -286,18 +270,6 @@ class SegmentedMessage {
   /// [graphemes] : List of graphemes in the message.
   ///
   /// Returns true if any character requires UCS-2 encoding, otherwise false.
-  bool _hasAnyUCSCharacters(List<String> graphemes) {
-    bool result = false;
-
-    for (String grapheme in graphemes) {
-      if (grapheme.length >= 2 ||
-          (grapheme.length == 1 &&
-              !unicodeToGsm.containsKey(grapheme.codeUnitAt(0)))) {
-        result = true;
-        break;
-      }
-    }
-
-    return result;
-  }
+  bool _hasAnyUCSCharacters(List<String> graphemes) =>
+      graphemes.any((grapheme) => grapheme.length >= 2 || (grapheme.length == 1 && !unicodeToGsm.containsKey(grapheme.codeUnitAt(0))));
 }

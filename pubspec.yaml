@@ -1,21 +1,16 @@
 name: message_segment_calculator
 description: "Efficiently calculate SMS segments for messages with support for GSM and UCS-2 encoding. Ideal for apps that require precise SMS length and cost management."
-version: 1.0.10
+version: 1.1.0
 homepage: https://github.com/SajanBaisil/message_segment_calculator
 
 environment:
   sdk: '>=3.4.4 <4.0.0'
-  flutter: ">=1.17.0"
 
 dependencies:
-  characters: ^1.3.0
-  flutter:
-    sdk: flutter
-  grapheme_splitter: ^1.0.1
+  characters: ^1.4.0
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
+  test: ^1.26.2
   flutter_lints: ^3.0.0
 
 # For information on the generic Dart part of this file, see the
