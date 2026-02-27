@@ -228,6 +228,111 @@ class SegmentedMessage {
   /// Gets the number of segments in the message.
   int get segmentsCount => segments.length;
 
+  /// The number of bits used to represent a single character in the current encoding.
+  ///
+  /// Each SMS has a maximum payload of **140 bytes (1120 bits)**. The number of
+  /// characters that fit depends on the encoding:
+  ///
+  /// | Encoding | Bits per character |
+  /// |----------|--------------------|
+  /// | GSM-7    | 7 bits             |
+  /// | UCS-2    | 16 bits            |
+  ///
+  /// **Note:** Extended GSM-7 characters (e.g. `\`, `{`, `}`, `[`, `]`, `€`)
+  /// use **2 code units (14 bits)**, so they count as 2 characters in GSM-7.
+  int get _bitsPerCharacter => encoding == SmsEncoding.gsm7 ? 7 : 16;
+
+  /// The maximum number of characters that can fit in a **single SMS segment**
+  /// given the current encoding.
+  ///
+  /// This value changes depending on whether the message fits in one segment
+  /// or requires multiple segments (concatenation). When concatenated, each
+  /// segment includes a **User Data Header (UDH)** of 6 bytes (48 bits) that
+  /// reduces the available space for message content.
+  ///
+  /// ### Single-segment limits (no UDH):
+  /// | Encoding | Calculation           | Max characters |
+  /// |----------|-----------------------|----------------|
+  /// | GSM-7    | 1120 bits ÷ 7 bits    | **160**        |
+  /// | UCS-2    | 1120 bits ÷ 16 bits   | **70**         |
+  ///
+  /// ### Multi-segment limits (with UDH per segment):
+  /// | Encoding | Calculation                   | Max characters |
+  /// |----------|-------------------------------|----------------|
+  /// | GSM-7    | (1120 − 48) bits ÷ 7 bits     | **153**        |
+  /// | UCS-2    | (1120 − 48) bits ÷ 16 bits    | **67**         |
+  ///
+  /// ### Why does the value change?
+  /// - Typing **only GSM-7 characters** (a-z, 0-9, basic punctuation) →
+  ///   the encoding is GSM-7 and you get **160 chars** in one segment.
+  /// - As soon as a **non-GSM character** (emoji, Chinese, Arabic, `ç`, etc.)
+  ///   is present → encoding switches to UCS-2 and the limit drops to **70**.
+  /// - Once the message exceeds one segment, the per-segment limit further
+  ///   reduces to **153 (GSM-7)** or **67 (UCS-2)** due to the UDH overhead.
+  ///
+  /// Example:
+  /// ```dart
+  /// final gsm = SegmentedMessage('Hello');
+  /// print(gsm.maxCharsPerSegment); // 160 (GSM-7, single segment)
+  ///
+  /// final ucs2 = SegmentedMessage('Hello 😊');
+  /// print(ucs2.maxCharsPerSegment); // 70 (UCS-2, single segment)
+  ///
+  /// final longGsm = SegmentedMessage('A' * 161);
+  /// print(longGsm.maxCharsPerSegment); // 153 (GSM-7, multi-segment)
+  /// ```
+  int get maxCharsPerSegment {
+    const int maxBitsInSegment = 1120; // 140 bytes × 8 bits
+    const int headerBits = 48; // 6 bytes × 8 bits (UDH for concatenated SMS)
+
+    if (segments.length <= 1 &&
+        !(segments.isNotEmpty && segments.first.hasUserDataHeader)) {
+      // Single segment — no UDH overhead
+      return maxBitsInSegment ~/ _bitsPerCharacter;
+    }
+    // Multi-segment — each segment includes a UDH
+    return (maxBitsInSegment - headerBits) ~/ _bitsPerCharacter;
+  }
+
+  /// The number of characters that can still be added to the **current (last)
+  /// segment** before a new segment would be created.
+  ///
+  /// This is calculated by taking the free bits remaining in the last segment
+  /// and dividing by the bits-per-character of the current encoding
+  /// (7 for GSM-7, 16 for UCS-2).
+  ///
+  /// ### How it works:
+  /// 1. The last segment has a certain number of **free bits** left.
+  /// 2. Divide free bits by bits-per-character → remaining characters.
+  ///
+  /// ### Practical examples:
+  /// ```dart
+  /// // GSM-7: 5 chars typed → 160 - 5 = 155 remaining
+  /// final msg1 = SegmentedMessage('Hello');
+  /// print(msg1.remainingCharsInSegment); // 155
+  ///
+  /// // UCS-2: 5 Japanese chars → 70 - 5 = 65 remaining
+  /// final msg2 = SegmentedMessage('こんにちは');
+  /// print(msg2.remainingCharsInSegment); // 65
+  ///
+  /// // Exactly 160 GSM-7 chars → segment full, 0 remaining
+  /// final msg3 = SegmentedMessage('A' * 160);
+  /// print(msg3.remainingCharsInSegment); // 0
+  ///
+  /// // 161 GSM-7 chars → spills into segment 2, remaining in segment 2
+  /// final msg4 = SegmentedMessage('A' * 161);
+  /// print(msg4.remainingCharsInSegment); // 145 (153 - 8)
+  /// ```
+  ///
+  /// Returns `0` when the last segment is completely full.
+  ///
+  /// **Note:** Extended GSM-7 characters (e.g. `\`, `€`) consume 2 code units
+  /// (14 bits), so they reduce the remaining count by 2 instead of 1.
+  int get remainingCharsInSegment {
+    if (segments.isEmpty) return maxCharsPerSegment;
+    return segments.last.freeSizeInBits() ~/ _bitsPerCharacter;
+  }
+
   /// Retrieves a list of characters that are not GSM-7 encoded.
   ///
   /// Returns a list of non-GSM7 characters.

@@ -123,4 +123,87 @@ void main() {
       expect(header.sizeInBits(), 8);
     });
   });
+
+  group('remainingCharsInSegment & maxCharsPerSegment Tests', () {
+    test('Empty GSM-7 message: 160 max, 160 remaining', () {
+      final msg = SegmentedMessage('');
+      expect(msg.encoding, SmsEncoding.gsm7);
+      expect(msg.maxCharsPerSegment, 160);
+      expect(msg.remainingCharsInSegment, 160);
+    });
+
+    test('Short GSM-7 message: 160 max, remaining = 160 - length', () {
+      const text = 'Hello'; // 5 chars, 5 code units in GSM-7
+      final msg = SegmentedMessage(text);
+
+      expect(msg.encoding, SmsEncoding.gsm7);
+      expect(msg.segmentsCount, 1);
+      expect(msg.maxCharsPerSegment, 160);
+      expect(msg.remainingCharsInSegment, 155);
+    });
+
+    test('Exactly 160 GSM-7 chars: 1 segment, 0 remaining', () {
+      final text = 'A' * 160;
+      final msg = SegmentedMessage(text);
+
+      expect(msg.encoding, SmsEncoding.gsm7);
+      expect(msg.segmentsCount, 1);
+      expect(msg.maxCharsPerSegment, 160);
+      expect(msg.remainingCharsInSegment, 0);
+    });
+
+    test('161 GSM-7 chars: 2 segments, maxCharsPerSegment = 153', () {
+      final text = 'A' * 161;
+      final msg = SegmentedMessage(text);
+
+      expect(msg.encoding, SmsEncoding.gsm7);
+      expect(msg.segmentsCount, 2);
+      expect(msg.maxCharsPerSegment, 153);
+      // 2 segments × 153 = 306 capacity, used 161, remaining in last segment
+      expect(msg.remainingCharsInSegment, 153 - (161 - 153));
+    });
+
+    test('Short UCS-2 message: 70 max, remaining correct', () {
+      const text = 'こんにちは'; // 5 UCS-2 chars
+      final msg = SegmentedMessage(text);
+
+      expect(msg.encoding, SmsEncoding.ucs2);
+      expect(msg.segmentsCount, 1);
+      expect(msg.maxCharsPerSegment, 70);
+      expect(msg.remainingCharsInSegment, 65);
+    });
+
+    test('Exactly 70 UCS-2 chars: 1 segment, 0 remaining', () {
+      final text = 'あ' * 70;
+      final msg = SegmentedMessage(text);
+
+      expect(msg.encoding, SmsEncoding.ucs2);
+      expect(msg.segmentsCount, 1);
+      expect(msg.maxCharsPerSegment, 70);
+      expect(msg.remainingCharsInSegment, 0);
+    });
+
+    test('71 UCS-2 chars: 2 segments, maxCharsPerSegment = 67', () {
+      final text = 'あ' * 71;
+      final msg = SegmentedMessage(text);
+
+      expect(msg.encoding, SmsEncoding.ucs2);
+      expect(msg.segmentsCount, 2);
+      expect(msg.maxCharsPerSegment, 67);
+      // 2 segments × 67 = 134 capacity, used 71, remaining in last segment
+      expect(msg.remainingCharsInSegment, 67 - (71 - 67));
+    });
+
+    test('GSM-7 extended char (backslash) uses 2 code units', () {
+      // Backslash is an extended GSM-7 char → 2 code units → 14 bits
+      const text = r'Hello\'; // 5 normal + 1 extended (2 code units)
+      final msg = SegmentedMessage(text);
+
+      expect(msg.encoding, SmsEncoding.gsm7);
+      expect(msg.segmentsCount, 1);
+      // 5 normal chars = 35 bits, 1 extended = 14 bits → total 49 bits
+      // remaining = (1120 - 49) ~/ 7 = 153
+      expect(msg.remainingCharsInSegment, 153);
+    });
+  });
 }

@@ -1,3 +1,10 @@
+## 1.2.0
+
+### Added
+- **`remainingCharsInSegment` property** — Returns how many characters can still be added to the current (last) segment before a new segment is created. Useful for building real-time character counters and SMS cost previews.
+- **`maxCharsPerSegment` property** — Returns the maximum number of characters that fit in a single segment for the current encoding. Accounts for the User Data Header overhead in multi-segment messages (GSM-7: 160→153, UCS-2: 70→67).
+- **8 new unit tests** — Comprehensive tests covering empty messages, exact boundary, single/multi-segment transitions, and extended GSM-7 characters for both new properties.
+
 ## 1.1.2
 
 ### Fixed
