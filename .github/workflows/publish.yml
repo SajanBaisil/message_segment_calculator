@@ -3,10 +3,9 @@ name: Dart Package CI
 on:
   push:
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+*'
-  
-jobs:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
 
+jobs:
   publish:
     permissions:
       id-token: write # Required for authentication using OIDC

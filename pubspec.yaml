@@ -11,7 +11,7 @@ topics:
   - messaging
 
 environment:
-  sdk: '>=3.4.4 <4.0.0'
+  sdk: ">=3.4.4 <4.0.0"
 
 dependencies:
   characters: ^1.4.0

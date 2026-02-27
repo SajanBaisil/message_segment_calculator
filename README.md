@@ -116,7 +116,8 @@ class _MessageSegmentCalculatorWidgetState
 - **Detailed Descriptions**: Each class is explained to clarify its role in the package.
 - **Usage Example**: Shows a practical example to help developers quickly understand how to use the package.
 - **Installation Instructions**: Guides users on how to add the package to their project.
-- **Contribution Guidelines**: Encourages contributions and provides a link to the issues page. 
+- **Contribution Guidelines**: Encourages contributions and provides a link to the issues page.
 
 This README provides a comprehensive overview, making it easier for users to understand and use the package effectively.
 
+```

@@ -78,18 +78,25 @@ class _MessageSegmentCalculatorWidgetState
               const SizedBox(height: 10),
 
               /// Displays the results of the message segmentation calculations.
-              Text('number of characters : ${segmentedMessage?.numberOfCharacters}'),
+              Text(
+                  'number of characters : ${segmentedMessage?.numberOfCharacters}'),
               Text('number of segments : ${segmentedMessage?.segmentsCount}'),
-              Text('number of unicode scalars : ${segmentedMessage?.numberOfUnicodeScalars}'),
+              Text(
+                  'number of unicode scalars : ${segmentedMessage?.numberOfUnicodeScalars}'),
               Text('message size in bits : ${segmentedMessage?.messageSize}'),
               Text('total size in bits : ${segmentedMessage?.totalSize}'),
               const Divider(),
-              Text('max chars per segment : ${segmentedMessage?.maxCharsPerSegment}'),
-              Text('remaining chars in segment : ${segmentedMessage?.remainingCharsInSegment}',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+              Text(
+                  'max chars per segment : ${segmentedMessage?.maxCharsPerSegment}'),
+              Text(
+                'remaining chars in segment : ${segmentedMessage?.remainingCharsInSegment}',
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, color: Colors.blue),
               ),
               const SizedBox(height: 10),
-              Text('segments:\n${segmentedMessage?.segments.map((segment) => '- $segment').join('\n')}', style: const TextStyle(fontSize: 10)),
+              Text(
+                  'segments:\n${segmentedMessage?.segments.map((segment) => '- $segment').join('\n')}',
+                  style: const TextStyle(fontSize: 10)),
             ],
           ),
         ),

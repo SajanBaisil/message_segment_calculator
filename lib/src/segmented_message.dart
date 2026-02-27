@@ -1,8 +1,8 @@
 import 'package:characters/characters.dart';
 import 'package:message_segment_calculator/message_segment_calculator.dart';
 
-import 'segment_element.dart';
 import 'segment.dart';
+import 'segment_element.dart';
 
 /// =============================================================================
 /// ENUM: SmsEncodingMode

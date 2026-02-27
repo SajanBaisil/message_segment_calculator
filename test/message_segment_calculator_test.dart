@@ -1,7 +1,7 @@
-import 'package:test/test.dart';
+import 'package:message_segment_calculator/src/segment.dart';
 import 'package:message_segment_calculator/src/segment_element.dart';
 import 'package:message_segment_calculator/src/segmented_message.dart';
-import 'package:message_segment_calculator/src/segment.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('SegmentedMessage Tests', () {
