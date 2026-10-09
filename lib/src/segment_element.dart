@@ -1,5 +1,4 @@
 import 'package:message_segment_calculator/message_segment_calculator.dart';
-import 'package:message_segment_calculator/src/utils/on_string.dart';
 
 part 'encoded_char.dart';
 part 'user_data_header.dart';

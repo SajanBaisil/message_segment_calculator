@@ -22,15 +22,20 @@ class EncodedChar extends SegmentElement {
   EncodedChar(String? char, this.encoding) {
     raw = char; // Initialize the raw character
 
-    // Determine if the character is GSM7
-    isGSM7 = ((char.notNullNorEmpty) &&
-        (char?.length == 1) &&
-        unicodeToGsm.containsKey(char?.codeUnitAt(0)));
+    // A character is GSM-7 when it is a single UTF-16 code unit found in the
+    // GSM-7 table. Whitespace such as ' ' and '\n' is GSM-7 too.
+    isGSM7 = char != null &&
+        char.length == 1 &&
+        unicodeToGsm.containsKey(char.codeUnitAt(0));
 
     // Assign code units based on whether the character is GSM7 or not
     if (isGSM7 ?? false) {
-      codeUnits =
-          unicodeToGsm[char?.codeUnitAt(0)]; // Use mapped code units for GSM7
+      // For GSM-7 characters in UCS-2 encoding, store the corresponding
+      // UCS-2/UTF-16 code unit (one 16-bit unit per character) instead of the
+      // GSM-7 extension mapping (which uses 2 units for chars like |, ^, {).
+      codeUnits = encoding == SmsEncoding.ucs2
+          ? [char!.codeUnitAt(0)]
+          : unicodeToGsm[char!.codeUnitAt(0)];
     } else {
       codeUnits = []; // For non-GSM7 characters, initialize an empty list
       for (var i = 0; i < char!.length; i++) {

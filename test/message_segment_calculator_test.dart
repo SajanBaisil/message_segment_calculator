@@ -110,8 +110,11 @@ void main() {
       segment.add(char);
       final overflow = segment.addHeader();
 
-      expect(segment.hasUserDataHeader, true);
-      expect(segment.elements.length, greaterThan(1)); // Includes headers
+      // Same flags as Twilio: reserved bits are used, but the segment was not
+      // created with a header.
+      expect(segment.hasTwilioReservedBits, true);
+      expect(segment.hasUserDataHeader, false);
+      expect(segment.elements.length, 7); // 6 headers + 'A'
       expect(overflow, isEmpty); // No overflow if only one char added
     });
   });
