@@ -1,8 +1,8 @@
-import 'package:characters/characters.dart';
 import 'package:message_segment_calculator/message_segment_calculator.dart';
 
 import 'segment.dart';
 import 'segment_element.dart';
+import 'utils/text_utils.dart';
 
 /// =============================================================================
 /// ENUM: SmsEncodingMode
@@ -92,17 +92,15 @@ class SegmentedMessage {
       [this.encodingMode = SmsEncodingMode.auto, bool smartEncoding = false]) {
     // Apply smart encoding if enabled
     if (smartEncoding) {
-      message = message
-          .split('')
-          .map((char) => smartEncodingMap[char] ?? char)
-          .join('');
+      // Iterate over Unicode code points, like Twilio's `[...message]`.
+      message = message.runes.map((rune) {
+        final char = String.fromCharCode(rune);
+        return smartEncodingMap[char] ?? char;
+      }).join('');
     }
 
     // Split message into graphemes and process line breaks
-    graphemes = message.characters
-        .expand(
-            (grapheme) => grapheme == '\r\n' ? grapheme.split('') : [grapheme])
-        .toList(growable: false);
+    graphemes = splitGraphemes(message);
 
     // Count the number of Unicode scalars in the message
     numberOfUnicodeScalars = message.runes.length;
@@ -350,7 +348,10 @@ class SegmentedMessage {
   /// Returns the line break style used (LF, CRLF, LF+CRLF, or null).
   LineBreakStyle? _detectLineBreakStyle(String message) {
     bool hasWindowsStyle = message.contains('\r\n');
-    bool hasUnixStyle = message.contains('\n');
+    // A lone LF is any '\n' that remains once CRLF pairs are removed. Testing
+    // the raw string for '\n' would always match CRLF input (since '\r\n'
+    // contains '\n'), which made the CRLF result unreachable.
+    bool hasUnixStyle = message.replaceAll('\r\n', '').contains('\n');
     bool mixedStyle = hasWindowsStyle && hasUnixStyle;
     bool noBreakLine = !hasWindowsStyle && !hasUnixStyle;
 
@@ -373,7 +374,7 @@ class SegmentedMessage {
 
     if (lineBreakStyle != null) {
       warnings.add(
-        'The message has line breaks; the web page utility only supports LF style. If you insert a CRLF, it will be converted to LF.',
+        'The message has line breaks, the web page utility only supports LF style. If you insert a CRLF it will be converted to LF.',
       );
     }
 

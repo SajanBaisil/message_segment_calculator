@@ -1,3 +1,45 @@
+## 1.3.0
+
+Brings the package in line with Twilio's official calculator
+([TwilioDevEd/message-segment-calculator](https://github.com/TwilioDevEd/message-segment-calculator) v1.3.0).
+Verified by running both calculators on more than 10,000 messages (emoji, flags,
+skin tones, ZWJ sequences, accents, CJK, GSM-7 extension characters, line
+breaks, smart encoding, forced encodings) and comparing every output; they
+agree on all of them.
+
+### Fixed
+
+- **Grapheme splitting now matches Twilio** — Replaced `package:characters`
+  with a Dart port of grapheme-splitter 1.0.4, the splitter Twilio uses. Newer
+  emoji sequences (e.g. 🏴‍☠️, 🫱🏼‍🫲🏿, 🐦‍🔥) are split the same way, so the
+  character and segment counts are the same as Twilio's.
+- **Spaces and line breaks were reported as non-GSM** — `EncodedChar.isGSM7`
+  trimmed the character before checking it, so `' '`, `'\n'` and `'\r'` were
+  `false` and showed up in `getNonGsmCharacters()`.
+- **GSM extension characters in UCS-2 messages** — `|`, `^`, `{`, `€`, … now
+  keep their single UTF-16 code unit in `codeUnits` when the message is UCS-2,
+  instead of the 2-unit GSM-7 escape sequence (Twilio #57/#61).
+- **Line break style** — A message with only CRLF line breaks is now reported
+  as `LineBreakStyle.crlf` instead of `lfCrlf` (Twilio #67).
+- **Smart encoding** — `‹` and `›` now map to `<` and `>` (they were swapped,
+  Twilio #58), and ZERO WIDTH NON-JOINER (U+200C) is removed. Smart encoding
+  now iterates Unicode code points, like Twilio.
+- **Line break warning** now uses Twilio's exact wording.
+- `Segment.addHeader()` sets `hasUserDataHeader` to `false` like Twilio
+  (`hasTwilioReservedBits` is `true`). Segment counts are unaffected.
+
+### Added
+
+- **`RcsSegmentedMessage`** — RCS billing (UTF-8 bytes): US messages are split
+  into 160-byte "Rich" segments; international messages are "Basic"
+  (≤160 bytes) or "Single" (>160 bytes, capacity 1600).
+- **`countUtf8Bytes()`** — UTF-8 byte length of a message.
+- Port of Twilio's full test suite (`test/twilio_parity_test.dart`).
+
+### Changed
+
+- The package no longer depends on `package:characters`.
+
 ## 1.2.0
 
 ### Added

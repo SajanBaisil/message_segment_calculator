@@ -270,14 +270,15 @@ const Map<String, String> smartEncodingMap = {
   '\u2017': '_', // DOUBLE LOW LINE
   '\u2014': '-', // EM DASH
   '\u2013': '-', // EN DASH
-  '\u2039': '>', // Single left-pointing angle quotation mark
-  '\u203A': '<', // Single right-pointing angle quotation mark
+  '\u2039': '<', // Single left-pointing angle quotation mark
+  '\u203A': '>', // Single right-pointing angle quotation mark
   '\u203C': '!!', // Double exclamation mark
   '\u2028': ' ', // Whitespace: Line Separator
   '\u2029': ' ', // Whitespace: Paragraph Separator
   '\u2026': '...', // Whitespace: Narrow No-Break Space
   '\u2001': ' ', // Whitespace: Medium Mathematical Space
   '\u200b': '', // ZERO WIDTH SPACE
+  '\u200c': '', // ZERO WIDTH NON-JOINER
   '\u3001': ',', // IDEOGRAPHIC COMMA
   '\uFEFF': '', // ZERO WIDTH NO-BREAK SPACE
   '\u2022': '-', // Bullet

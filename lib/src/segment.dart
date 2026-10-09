@@ -66,9 +66,10 @@ class Segment {
       return []; // Return an empty list if headers are already present.
     }
     final leftOverChar = <EncodedChar>[];
-    hasTwilioReservedBits =
-        true; // Indicate that Twilio reserved bits are used.
-    hasUserDataHeader = true; // Indicate that a user data header is now added.
+    // Same flags as Twilio's calculator: the reserved bits are now used, but
+    // the segment keeps reporting that it was not created with a header.
+    hasTwilioReservedBits = true;
+    hasUserDataHeader = false;
 
     // Add 6 user data headers at the start of the segment.
     for (int i = 0; i < 6; i++) {
